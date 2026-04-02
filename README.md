@@ -1,195 +1,36 @@
-Aqui está seu HTML convertido para um **README.md otimizado para GitHub** (mantendo estrutura, legibilidade e sem depender de CSS):
+
+
+````md
+# PR Menu  
+### EN Integration system with the OX Overextended library  
+### BR Sistema de integração com a biblioteca OX Overextended  
 
 ---
 
-# pr_menu / ox_target integration
-
-🇧🇷 Português | 🇺🇸 English
-
----
-
-## 🇧🇷 Português
-
-### 📌 Sobre
-
-Sistema declarativo de criação e gerenciamento de menus interativos via **ox_target**.
-Defina tudo no config — o sistema monta a estrutura automaticamente.
+<p align="center">
+  <a href="#english">🇺🇸 English</a> • 
+  <a href="#portugues">🇧🇷 Português</a>
+</p>
 
 ---
 
-## 🔗 Dependências
+<a id="english"></a>
+# 🇺🇸 English
 
-| Nome           | Função                    | Status        |
-| -------------- | ------------------------- | ------------- |
-| ox_lib         | Utilitários, notify, init | ✅ Obrigatório |
-| ox_target      | Engine de interação       | ✅ Obrigatório |
-| ox_inventory   | Inventário (baú etc.)     | ⚠️ Opcional   |
-| qbx_core / ESX | Framework (permissões)    | ⚠️ Opcional   |
-
----
-
-## ⚙️ Sistema de Menus
-
-O coração do sistema é o campo:
-
-```lua
-id
-```
-
-> **Regra central:**
-> Entradas com o mesmo `id` são agrupadas automaticamente.
-
----
-
-### 🔀 Comportamentos
-
-| Situação                         | Resultado               | Tipo       |
-| -------------------------------- | ----------------------- | ---------- |
-| `id` único sem `children`        | Executa direto          | DIRETO     |
-| `id` único com `children`        | Abre submenu            | NESTED     |
-| Mesmo `id` em múltiplas entradas | Cria submenu automático | AUTO-MERGE |
-
----
-
-## 🚀 Auto-Merge (principal recurso)
-
-Entradas com mesmo `id` viram **um único target com submenu automático**.
-
-### Exemplo
-
-```lua
--- Config.Targets.Vehicle
-{
-  id = 'vehicle_door',
-  groupLabel = 'Porta / Vidro',
-  bones = { 'door_dside_f', 'door_pside_f' },
-  label = 'Abrir Porta',
-  icon = 'fas fa-door-open',
-  onSelect = function(data) end,
-},
-{
-  id = 'vehicle_door',
-  bones = { 'door_dside_f', 'door_pside_f' },
-  label = 'Abrir Janela',
-  icon = 'fas fa-window-maximize',
-  onSelect = function(data) end,
-}
-```
-
-### Resultado
-
-```
-Jogador mira →
-  1 target aparece: "Porta / Vidro"
-    → clique →
-      Abrir Porta
-      Abrir Janela
-      Voltar
-```
-
-> `groupLabel` define o nome do menu pai.
-
----
-
-## 📂 Submenus com `children`
-
-```lua
-{
-  id = 'vehicle_trunk',
-  bones = { 'boot' },
-  label = 'Porta-mala',
-  icon = 'fas fa-box-open',
-  children = {
-    { id = 'trunk_door', label = 'Abrir / Fechar', onSelect = function(data) end },
-    { id = 'trunk_safe', label = 'Baú do Veículo', onSelect = function(data) end },
-  }
-}
-```
-
----
-
-## 🧩 Campos do Config
-
-| Campo      | Tipo     | Descrição             |
-| ---------- | -------- | --------------------- |
-| id         | string   | Chave de agrupamento  |
-| groupLabel | string?  | Nome do menu pai      |
-| label      | string   | Texto exibido         |
-| icon       | string   | Ícone Font Awesome    |
-| bones      | table?   | Bones do veículo      |
-| distance   | number?  | Distância de ativação |
-| duty       | string?  | Job necessário        |
-| lvl        | number?  | Nível mínimo          |
-| onSelect   | function | Callback              |
-| children   | table?   | Submenu               |
-
----
-
-## 📏 Distâncias
-
-```lua
-Config.Distance = {
-  default = 2.0,
-  vehicle = 2.5,
-  player  = 2.0,
-}
-```
-
----
-
-## 🔐 Permissões
-
-```lua
-{
-  id = 'cuff',
-  duty = 'police',
-  lvl = 1,
-  label = 'Algemar',
-  icon = 'fas fa-handcuffs',
-  onSelect = function(data) end
-}
-```
-
-✔ Verificado no client e server
-✔ Compatível com QBX e ESX
-
----
-
-## 🔄 Fluxo
-
-```
-Config.Targets
-   ↓
-groupById()
-   ↓
-1 item → ação direta
-1 item + children → submenu
-N itens mesmo id → auto-merge
-   ↓
-ox_target:addGlobal*
-```
-
----
-
----
-
-## 🇺🇸 English
-
-### 📌 About
-
-Declarative menu system powered by **ox_target**.
+## 📌 About
+Declarative menu system powered by **ox_target**.  
 Everything is defined in config — menus are built automatically.
 
 ---
 
 ## 🔗 Dependencies
 
-| Name           | Role          | Status      |
-| -------------- | ------------- | ----------- |
-| ox_lib         | Utilities     | ✅ Required  |
-| ox_target      | Target engine | ✅ Required  |
-| ox_inventory   | Inventory     | ⚠️ Optional |
-| qbx_core / ESX | Framework     | ⚠️ Optional |
+| Name         | Role                     | Status |
+|-------------|--------------------------|--------|
+| ox_lib      | Utilities                | ✅ Required |
+| ox_target   | Target engine            | ✅ Required |
+| ox_inventory| Inventory                | ⚠️ Optional |
+| qbx_core / ESX | Framework            | ⚠️ Optional |
 
 ---
 
@@ -199,14 +40,14 @@ Core field:
 
 ```lua
 id
-```
+````
 
 > **Core rule:**
 > Same `id` = grouped automatically.
 
 ---
 
-### 🔀 Behaviors
+## 🔀 Behaviors
 
 | Case                     | Result        | Type       |
 | ------------------------ | ------------- | ---------- |
@@ -223,6 +64,7 @@ Multiple entries with same `id` become **one target with submenu**.
 ### Example
 
 ```lua
+-- Config.Targets.Vehicle
 {
   id = 'vehicle_door',
   groupLabel = 'Door / Window',
@@ -240,6 +82,17 @@ Multiple entries with same `id` become **one target with submenu**.
 }
 ```
 
+### Result
+
+```
+Player aims →
+  1 target appears: "Door / Window"
+    → click →
+      Open Door
+      Roll Window
+      Back
+```
+
 ---
 
 ## 📂 Children submenu
@@ -247,6 +100,9 @@ Multiple entries with same `id` become **one target with submenu**.
 ```lua
 {
   id = 'vehicle_trunk',
+  bones = { 'boot' },
+  label = 'Trunk',
+  icon = 'fas fa-box-open',
   children = {
     { id = 'trunk_door', label = 'Open / Close', onSelect = function(data) end },
     { id = 'trunk_safe', label = 'Storage', onSelect = function(data) end },
@@ -303,4 +159,156 @@ direct / nested / merged
    ↓
 ox_target:addGlobal*
 ```
+
+---
+
+---
+
+<a id="portugues"></a>
+
+# 🇧🇷 Português
+
+## 📌 Sobre
+
+Sistema declarativo de menus usando **ox_target**.
+Tudo é definido no config — o sistema monta automaticamente.
+
+---
+
+## 🔗 Dependências
+
+| Nome           | Função              | Status        |
+| -------------- | ------------------- | ------------- |
+| ox_lib         | Utilidades          | ✅ Obrigatório |
+| ox_target      | Engine de interação | ✅ Obrigatório |
+| ox_inventory   | Inventário          | ⚠️ Opcional   |
+| qbx_core / ESX | Framework           | ⚠️ Opcional   |
+
+---
+
+## ⚙️ Sistema de Menus
+
+Campo principal:
+
+```lua
+id
+```
+
+> **Regra central:**
+> Mesmo `id` = agrupamento automático.
+
+---
+
+## 🔀 Comportamentos
+
+| Situação                       | Resultado          | Tipo       |
+| ------------------------------ | ------------------ | ---------- |
+| id único sem children          | Ação direta        | DIRETO     |
+| id único com children          | Submenu            | NESTED     |
+| Mesmo id em múltiplas entradas | Submenu automático | AUTO-MERGE |
+
+---
+
+## 🚀 Auto-Merge
+
+Entradas com mesmo `id` viram **um único target com submenu**.
+
+### Exemplo
+
+```lua
+{
+  id = 'vehicle_door',
+  groupLabel = 'Porta / Vidro',
+  bones = { 'door_dside_f', 'door_pside_f' },
+  label = 'Abrir Porta',
+  icon = 'fas fa-door-open',
+  onSelect = function(data) end,
+},
+{
+  id = 'vehicle_door',
+  bones = { 'door_dside_f', 'door_pside_f' },
+  label = 'Abrir Janela',
+  icon = 'fas fa-window-maximize',
+  onSelect = function(data) end,
+}
+```
+
+### Resultado
+
+```
+Jogador mira →
+  1 target aparece: "Porta / Vidro"
+    → clique →
+      Abrir Porta
+      Abrir Janela
+      Voltar
+```
+
+---
+
+## 📂 Submenu com children
+
+```lua
+{
+  id = 'vehicle_trunk',
+  bones = { 'boot' },
+  label = 'Porta-mala',
+  icon = 'fas fa-box-open',
+  children = {
+    { id = 'trunk_door', label = 'Abrir / Fechar', onSelect = function(data) end },
+    { id = 'trunk_safe', label = 'Baú do Veículo', onSelect = function(data) end },
+  }
+}
+```
+
+---
+
+## 🧩 Campos
+
+| Campo      | Tipo     | Descrição            |
+| ---------- | -------- | -------------------- |
+| id         | string   | Chave de agrupamento |
+| groupLabel | string?  | Nome do menu pai     |
+| label      | string   | Texto                |
+| icon       | string   | Ícone                |
+| bones      | table?   | Bones                |
+| distance   | number?  | Distância            |
+| duty       | string?  | Emprego              |
+| lvl        | number?  | Nível                |
+| onSelect   | function | Callback             |
+| children   | table?   | Submenu              |
+
+---
+
+## 📏 Distâncias
+
+```lua
+Config.Distance = {
+  default = 2.0,
+  vehicle = 2.5,
+  player  = 2.0,
+}
+```
+
+---
+
+## 🔐 Permissões
+
+✔ Validação client + server
+✔ Compatível com QBX e ESX
+
+---
+
+## 🔄 Fluxo
+
+```
+Config.Targets
+   ↓
+groupById()
+   ↓
+direto / submenu / merge
+   ↓
+ox_target:addGlobal*
+```
+
 
