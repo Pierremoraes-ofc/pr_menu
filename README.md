@@ -1,9 +1,8 @@
+# PR Menu
 
+### EN Integration system with the OX Overextended library
 
-````md
-# PR Menu  
-### EN Integration system with the OX Overextended library  
-### BR Sistema de integração com a biblioteca OX Overextended  
+### BR Sistema de integração com a biblioteca OX Overextended
 
 ---
 
@@ -15,22 +14,24 @@
 ---
 
 <a id="english"></a>
+
 # 🇺🇸 English
 
 ## 📌 About
-Declarative menu system powered by **ox_target**.  
+
+Declarative menu system powered by **ox_target**.
 Everything is defined in config — menus are built automatically.
 
 ---
 
 ## 🔗 Dependencies
 
-| Name         | Role                     | Status |
-|-------------|--------------------------|--------|
-| ox_lib      | Utilities                | ✅ Required |
-| ox_target   | Target engine            | ✅ Required |
-| ox_inventory| Inventory                | ⚠️ Optional |
-| qbx_core / ESX | Framework            | ⚠️ Optional |
+| Name           | Role          | Status      |
+| -------------- | ------------- | ----------- |
+| ox_lib         | Utilities     | ✅ Required  |
+| ox_target      | Target engine | ✅ Required  |
+| ox_inventory   | Inventory     | ⚠️ Optional |
+| qbx_core / ESX | Framework     | ⚠️ Optional |
 
 ---
 
@@ -40,7 +41,7 @@ Core field:
 
 ```lua
 id
-````
+```
 
 > **Core rule:**
 > Same `id` = grouped automatically.
@@ -310,5 +311,3 @@ direto / submenu / merge
    ↓
 ox_target:addGlobal*
 ```
-
-
