@@ -1,215 +1,75 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- pr_menu | config/config.lua
+-- Configuração principal — editável sem tocar no código
+-- ─────────────────────────────────────────────────────────────────────────────
 Config = {}
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Integração com sistema de chaves de veículo
--- Defina o nome do resource ou nil para desativar verificação de chave
+-- Chave de veículo
+-- O Fivem_bridge detecta automaticamente: mm_carkeys, mri_Qcarkeys,
+-- qb-vehiclekeys, qbx_vehiclekeys, wasabi_carlock
+-- true  = verifica chave antes de abrir porta/porta-mala
+-- false = não verifica (qualquer um pode abrir)
 -- ─────────────────────────────────────────────────────────────────────────────
-Config.Vehicle_key = 'mm_carkeys'
+Config.UseVehicleKey = true
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Permissões de grupos/empregos para opções com duty
--- min_grade: nível mínimo do emprego necessário (0 = qualquer nível)
--- ─────────────────────────────────────────────────────────────────────────────
-Config.Admin = {
-    Permissions = {
-        ['admin']  = { min_grade = 0 },
-        ['police'] = { min_grade = 0 },
-    }
-}
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Distâncias padrão por tipo de target (em metros)
--- Pode ser sobrescrito individualmente em cada entrada de Config.Targets
+-- Distâncias padrão de ativação de target (metros)
 -- ─────────────────────────────────────────────────────────────────────────────
 Config.Distance = {
-    default = 2.0,   -- fallback global (usado quando não definido abaixo)
-    vehicle = 2.5,   -- padrão para targets de veículo
-    player  = 2.0,   -- padrão para targets de jogador
+    default = 2.0,
+    vehicle = 2.5,
+    player  = 2.0,
 }
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Targets de Veículo e Jogador
---
--- Campos disponíveis por entrada:
---   id          (string)   identificador de agrupamento
---                          → mesmo id em múltiplas entradas = submenu automático
---   groupLabel  (string?)  label do menu PAI ao agrupar (opcional, usa label do 1° item)
---   bones       (table?)   bones do veículo onde o target é ativado
---   distance    (number?)  distância de ativação (sobrescreve Config.Distance)
---   duty        (string?)  emprego necessário (nil = qualquer jogador)
---   lvl         (number?)  grade mínima do emprego (nil = qualquer grade)
---   label       (string)   texto exibido na opção
---   icon        (string)   ícone Font Awesome (ex: 'fas fa-door-open')
---   onSelect    (function) callback ao selecionar a opção
---   children    (table?)   sub-opções aninhadas (cria submenu a partir desta entrada)
+-- Trunk (porta-mala ocupável)
 -- ─────────────────────────────────────────────────────────────────────────────
-Config.Targets = {
+Config.Trunk = {
+    -- Duração do progressBar ao virar veículo (ms)
+    flipTime = 15000,
 
-    -- =========================================================================
-    --  VEÍCULO
-    -- =========================================================================
-    Vehicle = {
-
-        -- ── Porta + Vidro ────────────────────────────────────────────────────
-        -- Mesmo id 'vehicle_door' → fundidos automaticamente em submenu
-        {
-            id         = 'vehicle_door',
-            groupLabel = 'Porta / Vidro',   -- label do menu pai gerado
-            bones      = { 'door_dside_f', 'door_pside_f', 'door_dside_r', 'door_pside_r' },
-            distance   = 2.5,
-            duty       = nil,
-            lvl        = nil,
-            label      = 'Porta',
-            icon       = 'fas fa-door-open',
-            onSelect   = function(data)
-                if not DoesEntityExist(data.entity) then return end
-
-                local doorIndex = pr_menu.getNearestDoorIndex(data.entity, data.coords)
-                local isOpen    = GetVehicleDoorAngleRatio(data.entity, doorIndex) > 0.1
-
-                if isOpen then
-                    SetVehicleDoorShut(data.entity, doorIndex, false)
-                else
-                    -- Verifica chave antes de abrir
-                    if Config.Vehicle_key and not pr_menu.hasCarKey(data.entity) then
-                        lib.notify({ title = 'Veículo', description = 'Você não possui a chave!', type = 'error' })
-                        return
-                    end
-                    SetVehicleDoorOpen(data.entity, doorIndex, false, false)
-                end
-            end
-        },
-        {
-            id       = 'vehicle_door',
-            bones    = { 'door_dside_f', 'door_pside_f', 'door_dside_r', 'door_pside_r' },
-            distance = 2.5,
-            duty     = nil,
-            lvl      = nil,
-            label    = 'Vidro',
-            icon     = 'fas fa-window-maximize',
-            onSelect = function(data)
-                if not DoesEntityExist(data.entity) then return end
-
-                local winIndex = pr_menu.getNearestWindowIndex(data.entity, data.coords)
-
-                -- RollDownWindow / RollUpWindow requerem que o vidro esteja intacto
-                if not IsVehicleWindowIntact(data.entity, winIndex) then
-                    lib.notify({ title = 'Vidro', description = 'O vidro está quebrado!', type = 'error' })
-                    return
-                end
-
-                -- Sem forma nativa de checar se está aberto/fechado — usa state local
-                local key = ('pr_win_%s_%s'):format(NetworkGetNetworkIdFromEntity(data.entity), winIndex)
-                if LocalState[key] then
-                    RollUpWindow(data.entity, winIndex)
-                    LocalState[key] = false
-                else
-                    RollDownWindow(data.entity, winIndex)
-                    LocalState[key] = true
-                end
-            end
-        },
-
-        -- ── Capô ─────────────────────────────────────────────────────────────
-        -- Id único → ação direta (sem submenu)
-        {
-            id       = 'vehicle_capo',
-            bones    = { 'bonnet', 'bonnet_dummy' },
-            distance = 2.0,
-            duty     = nil,
-            lvl      = nil,
-            label    = 'Capô',
-            icon     = 'fas fa-car-side',
-            onSelect = function(data)
-                if not DoesEntityExist(data.entity) then return end
-
-                local isOpen = GetVehicleDoorAngleRatio(data.entity, 4) > 0.1
-                if isOpen then
-                    SetVehicleDoorShut(data.entity, 4, false)
-                else
-                    SetVehicleDoorOpen(data.entity, 4, false, false)
-                end
-            end
-        },
-
-        -- ── Porta-mala ───────────────────────────────────────────────────────
-        -- Id único MAS com campo 'children' → submenu aninhado
-        {
-            id       = 'vehicle_trunk',
-            bones    = { 'boot', 'door_dside_r2' },
-            distance = 2.5,
-            duty     = nil,
-            lvl      = nil,
-            label    = 'Porta-mala',
-            icon     = 'fas fa-box-open',
-            children = {
-                {
-                    id       = 'door_trunk',
-                    label    = 'Abrir / Fechar',
-                    icon     = 'fas fa-lock-open',
-                    onSelect = function(data)
-                        if not DoesEntityExist(data.entity) then return end
-
-                        local isOpen = GetVehicleDoorAngleRatio(data.entity, 5) > 0.1
-                        if isOpen then
-                            SetVehicleDoorShut(data.entity, 5, false)
-                        else
-                            if Config.Vehicle_key and not pr_menu.hasCarKey(data.entity) then
-                                lib.notify({ title = 'Veículo', description = 'Você não possui a chave!', type = 'error' })
-                                return
-                            end
-                            SetVehicleDoorOpen(data.entity, 5, false, false)
-                        end
-                    end
-                },
-                {
-                    id       = 'vehi_safe',
-                    label    = 'Baú do porta-mala',
-                    icon     = 'fas fa-lock',
-                    onSelect = function(data)
-                        if not DoesEntityExist(data.entity) then return end
-                        -- Envia a placa (identificador usado pelo ox_inventory para o baú)
-                        local plate = GetVehicleNumberPlateText(data.entity):gsub('%s+', '')
-                        TriggerServerEvent('pr_menu:openTrunkInventory', plate)
-                    end
-                },
-            }
-        },
-
+    -- Veículos que NÃO aceitam pessoas no porta-mala
+    disabled = {
+        [`penetrator`] = true, [`vacca`]    = true, [`monroe`]   = true,
+        [`turismor`]   = true, [`osiris`]   = true, [`comet`]    = true,
+        [`ardent`]     = true, [`jester`]   = true, [`nero`]     = true,
+        [`nero2`]      = true, [`vagner`]   = true, [`infernus`] = true,
+        [`zentorno`]   = true, [`comet2`]   = true, [`comet3`]   = true,
+        [`comet4`]     = true, [`bullet`]   = true,
     },
 
-    -- =========================================================================
-    --  JOGADOR
-    -- =========================================================================
-    Player = {
+    -- Offset de posição por classe de veículo (GTA class index)
+    classes = {
+        [0]  = { allowed = true,  x = 0.0, y = -1.5, z = 0.0  }, -- Coupes
+        [1]  = { allowed = true,  x = 0.0, y = -2.0, z = 0.0  }, -- Sedans
+        [2]  = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- SUVs
+        [3]  = { allowed = true,  x = 0.0, y = -1.5, z = 0.0  }, -- Coupes
+        [4]  = { allowed = true,  x = 0.0, y = -2.0, z = 0.0  }, -- Muscle
+        [5]  = { allowed = true,  x = 0.0, y = -2.0, z = 0.0  }, -- Sports Classics
+        [6]  = { allowed = true,  x = 0.0, y = -2.0, z = 0.0  }, -- Sports
+        [7]  = { allowed = true,  x = 0.0, y = -2.0, z = 0.0  }, -- Super
+        [8]  = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Motorcycles
+        [9]  = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Off-road
+        [10] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Industrial
+        [11] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Utility
+        [12] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Vans
+        [13] = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Cycles
+        [14] = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Boats
+        [15] = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Helicopters
+        [16] = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Planes
+        [17] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Service
+        [18] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Emergency
+        [19] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Military
+        [20] = { allowed = true,  x = 0.0, y = -1.0, z = 0.25 }, -- Commercial
+        [21] = { allowed = false, x = 0.0, y = -1.0, z = 0.25 }, -- Trains
+    },
+}
 
-        -- ── Algemar + Desalgemar ──────────────────────────────────────────────
-        -- Mesmo id 'cuff' → fundidos em submenu automático com label 'groupLabel'
-        {
-            id         = 'cuff',
-            groupLabel = 'Restrições',
-            duty       = 'police',
-            lvl        = 0,
-            label      = 'Algemar',
-            icon       = 'fas fa-handcuffs',
-            onSelect   = function(data)
-                if not DoesEntityExist(data.entity) then return end
-                local targetSrv = GetPlayerServerId(NetworkGetPlayerIndexFromPed(data.entity))
-                TriggerServerEvent('pr_menu:cuffPlayer', targetSrv, true)
-            end
-        },
-        {
-            id     = 'cuff',
-            duty   = 'police',
-            lvl    = 0,
-            label  = 'Desalgemar',
-            icon   = 'fas fa-handcuffs',
-            onSelect = function(data)
-                if not DoesEntityExist(data.entity) then return end
-                local targetSrv = GetPlayerServerId(NetworkGetPlayerIndexFromPed(data.entity))
-                TriggerServerEvent('pr_menu:cuffPlayer', targetSrv, false)
-            end
-        },
-
-    }
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Radial Menu
+-- ─────────────────────────────────────────────────────────────────────────────
+Config.RadialMenu = {
+    maxExtras    = 13,   -- quantos extras exibir no menu de extras do veículo
+    vehicleSeats = true, -- exibir menu de assentos ao entrar no veículo
 }

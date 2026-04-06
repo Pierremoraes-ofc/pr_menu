@@ -1,93 +1,37 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- pr_menu | server/target.lua
--- Callbacks server-side para operações que exigem validação no servidor
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Utilitário: verifica se o jogador tem permissão para uma ação com duty
--- ─────────────────────────────────────────────────────────────────────────────
-local function serverHasPermission(src, duty, lvl)
-    if not duty then return true end
-
-    -- QBX Core
-    if GetResourceState('qbx_core') == 'started' then
-        local ok, player = pcall(exports.qbx_core.GetPlayer, exports.qbx_core, src)
-        if not ok or not player then return false end
-        local job = player.PlayerData.job
-        if job.name ~= duty then return false end
-        if lvl and job.grade.level < lvl then return false end
-        return true
-    end
-
-    -- ESX
-    if GetResourceState('es_extended') == 'started' then
-        local ok, ESX = pcall(exports['es_extended'].getSharedObject, exports['es_extended'])
-        if not ok or not ESX then return false end
-        local player = ESX.GetPlayerFromId(src)
-        if not player then return false end
-        local job = player.getJob()
-        if job.name ~= duty then return false end
-        if lvl and job.grade < lvl then return false end
-        return true
-    end
-
-    return false
-end
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Algemar / Desalgemar jogador
--- Adapte para o seu resource de algemas
--- ─────────────────────────────────────────────────────────────────────────────
-RegisterNetEvent('pr_menu:cuffPlayer', function(targetServerId, cuffState)
+-- Algemar / Desalgemar
+RegisterNetEvent('pr_menu:cuffPlayer', function(targetId, cuffState)
     local src = source
 
-    if not serverHasPermission(src, 'police', 0) then
-        lib.print.warn(('[pr_menu] Jogador %s tentou algemar sem permissão.'):format(src))
+    if not pr_menu_sv.hasPermission(src, 'police', 0) then
+        lib.print.warn(('[pr_menu] %s tentou algemar sem permissão.'):format(src))
+        pr_menu_sv.notify(src, { title = 'Erro', description = 'Sem permissão!', type = 'error' })
         return
     end
 
-    if not GetPlayerPed(targetServerId) then
-        lib.print.warn(('[pr_menu] Jogador alvo %s não encontrado.'):format(targetServerId))
+    if not GetPlayerPed(targetId) then
+        lib.print.warn(('[pr_menu] Alvo %s não encontrado.'):format(targetId))
         return
     end
 
-    -- Dispara no cliente do alvo (integre com seu resource de algemas)
-    TriggerClientEvent('pr_menu:applyCuff', targetServerId, cuffState)
-
-    lib.print.info(('[pr_menu] Jogador %s %s jogador %s.'):format(
-        src,
-        cuffState and 'algemou' or 'desalmou',
-        targetServerId
-    ))
+    TriggerClientEvent('pr_menu:applyCuff', targetId, cuffState)
+    lib.print.info(('[pr_menu] %s %s o jogador %s.'):format(
+        src, cuffState and 'algemou' or 'desalmou', targetId))
 end)
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Abre o baú do porta-mala via ox_inventory
--- Recebe a placa (plate) do veículo como identificador do inventário
--- ─────────────────────────────────────────────────────────────────────────────
+-- Abrir baú do porta-mala via Bridge.inventory
 RegisterNetEvent('pr_menu:openTrunkInventory', function(plate)
     local src = source
 
     if not plate or plate == '' then
-        lib.print.warn(('[pr_menu] openTrunkInventory: placa inválida recebida de %s.'):format(src))
+        lib.print.warn(('[pr_menu] openTrunkInventory: placa inválida de %s.'):format(src))
         return
     end
 
-    -- Sanitiza a placa (remove espaços residuais)
     plate = plate:gsub('%s+', ''):upper()
-
-    -- ox_inventory — abre o inventário do tipo 'trunk' identificado pela placa
-    exports.ox_inventory:openInventory(src, { type = 'trunk', id = plate })
-
-    lib.print.info(('[pr_menu] Jogador %s abriu baú do veículo [%s].'):format(src, plate))
-end)
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Callback recebido no cliente alvo para aplicar algemas
--- Adapte para o seu resource (ex: ps-handcuffs, copcuff, etc.)
--- ─────────────────────────────────────────────────────────────────────────────
-RegisterNetEvent('pr_menu:applyCuff', function(cuffState)
-    -- Este evento chega no cliente do jogador que será algemado
-    -- Exemplo: TriggerEvent('handcuff:cuff', cuffState)
-    lib.print.info(('[pr_menu] Recebendo cuff: %s'):format(tostring(cuffState)))
+    pr_menu_sv.openInventory(src, 'trunk', { id = plate })
+    lib.print.info(('[pr_menu] %s abriu baú do veículo [%s].'):format(src, plate))
 end)
